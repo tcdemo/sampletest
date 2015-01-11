@@ -1,0 +1,56 @@
+<project name="getdependencies" basedir="." default="all" xmlns:ivy="antlib:org.apache.ivy.ant" xmlns:deploy="antlib:net.sf.antcontrib" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+
+	<property environment="env" />
+	<property file="ivy_automation_build.properties" />
+	<property name="ivy.jar.dir" value="${deps.dir}" />
+	<property name="ivy.install.version" value="2.3.0" />
+	<property name="deps.dir" value="${basedir}/lib" />
+	<property name="dir.lib" value="../lib" />
+	<property name="ivy.clean" value="TRUE" />
+
+	<target name="clean" description="cleans up tempervery dir">
+		<delete dir="${dir.lib}" />
+		<echo message="lib directory removed so that jar's can be reterived from artifactory" />
+		<delete dir="${deps.dir}" />
+		<echo message="ivy libs directory removed" />
+		<delete dir="${basedir}/ivy-reports" />
+		<echo message="ivy-reports directory removed" />
+	</target>
+
+	<target name="bootstrap" description="Used to install the ivy task jar">
+		<mkdir dir="${user.home}/.ant/lib" />
+		<get dest="${user.home}/.ant/lib/ivy.jar" src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/2.3.0/ivy-2.3.0.jar" />
+		<get dest="${user.home}/.ant/lib/ant-contrib.jar" src="http://repo1.maven.org/maven2/ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar" />
+		<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpath="${user.home}/.ant/lib/ivy.jar" />
+		<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpath="${user.home}/.ant/lib/ant-contrib.jar" />
+	</target>
+
+	<target name="get.dependencies" depends="clean, bootstrap" description="--> retrieve dependencies with ivy" unless="noivy">
+		<if>
+			<equals arg1="${ivy.clean}" arg2="TRUE" />
+			<then>
+				<antcall target="ivy.cleancache" />
+			</then>
+		</if>
+		<mkdir dir="${deps.dir}" />
+		<ivy:configure file="ivysettings.xml" override="true" />
+		<ivy:resolve file="${basedir}/ivy_deps.xml" log="download-only" />
+		<ivy:retrieve pattern="${deps.dir}/[artifact].[ext]" />
+		<ivy:report todir="${basedir}/ivy-reports" />
+		<!--Copying jar's from ivy-build/lib directory to /lib directory" -->
+		<copy todir="${dir.lib}" flatten="true" failonerror="true">
+			<fileset dir="${deps.dir}">
+				<include name="*.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="ivy.cleancache">
+		<ivy:cleancache />
+		<echo message="Clearing ivy cache as ivy.clean is set to TRUE" />
+	</target>
+
+	<target name="all" depends="get.dependencies" description="dowload dependencies from artifactory">
+	</target>
+
+</project>

@@ -1,0 +1,16 @@
+<ivysettings>
+	<settings defaultResolver="ivy"/>
+	<property name="ivy.local.default.root" value="${ivy.default.ivy.user.dir}/" override="false"/>
+	<properties file="ivy_automation_build.properties"/>
+	<resolvers > 
+		<chain name="chain" >
+			<url name="ivy" m2compatible="true">
+			 
+				<artifact pattern="http://${ivy.repository.host}/libs-release/[organisation]/[module]/[artifact]-[revision].[ext]" />
+				<artifact pattern="http://${ivy.repository.host}/libs-release/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]" />
+				<artifact pattern="http://${ivy.repository.host}/libs-release/[organisation]/[module]/[module]/[revision]/[artifact]-[revision].[ext]" />			
+			</url>
+		</chain>
+	</resolvers>
+</ivysettings>
+
